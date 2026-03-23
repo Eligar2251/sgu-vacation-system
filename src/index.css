@@ -9,10 +9,22 @@
     @apply scroll-smooth;
   }
   
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
   body {
     @apply font-body text-gray-900 antialiased;
     background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
     min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  #root {
+    min-height: 100vh;
+    width: 100%;
   }
 }
 
@@ -21,9 +33,9 @@
     @apply inline-flex items-center justify-center px-6 py-3 
            bg-gradient-to-r from-sgu-blue to-sgu-blue-light 
            text-white font-semibold rounded-xl 
-           shadow-lg shadow-sgu-blue/25
-           hover:shadow-xl hover:shadow-sgu-blue/30 
-           hover:scale-[1.02] active:scale-[0.98]
+           shadow-lg
+           hover:shadow-xl
+           active:scale-95
            transition-all duration-200 ease-out
            focus:outline-none focus:ring-2 focus:ring-sgu-blue/50 focus:ring-offset-2;
   }
@@ -34,7 +46,7 @@
            border-2 border-sgu-blue/20
            shadow-md hover:shadow-lg 
            hover:border-sgu-blue/40 hover:bg-sgu-blue/5
-           active:scale-[0.98]
+           active:scale-95
            transition-all duration-200 ease-out
            focus:outline-none focus:ring-2 focus:ring-sgu-blue/30 focus:ring-offset-2;
   }
@@ -43,9 +55,9 @@
     @apply inline-flex items-center justify-center px-6 py-3 
            bg-gradient-to-r from-red-500 to-red-600 
            text-white font-semibold rounded-xl 
-           shadow-lg shadow-red-500/25
-           hover:shadow-xl hover:shadow-red-500/30 
-           hover:scale-[1.02] active:scale-[0.98]
+           shadow-lg
+           hover:shadow-xl
+           active:scale-95
            transition-all duration-200 ease-out
            focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:ring-offset-2;
   }
@@ -54,37 +66,31 @@
     @apply inline-flex items-center justify-center px-6 py-3 
            bg-gradient-to-r from-emerald-500 to-emerald-600 
            text-white font-semibold rounded-xl 
-           shadow-lg shadow-emerald-500/25
-           hover:shadow-xl hover:shadow-emerald-500/30 
-           hover:scale-[1.02] active:scale-[0.98]
+           shadow-lg
+           hover:shadow-xl
+           active:scale-95
            transition-all duration-200 ease-out
            focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:ring-offset-2;
   }
 
   .card {
-    @apply bg-white/80 backdrop-blur-xl rounded-2xl 
-           shadow-xl shadow-gray-900/5 
-           border border-white/50
-           p-6 transition-all duration-300;
+    @apply bg-white rounded-2xl shadow-lg border border-gray-100 p-6;
   }
 
   .card-hover {
-    @apply hover:shadow-2xl hover:shadow-gray-900/10 
-           hover:-translate-y-1 hover:bg-white/90;
+    @apply hover:shadow-xl transition-shadow duration-200;
   }
 
   .input-field {
     @apply w-full px-4 py-3 rounded-xl 
-           bg-white/50 border border-gray-200
-           focus:border-sgu-blue focus:ring-4 focus:ring-sgu-blue/10
-           transition-all duration-200 ease-out
-           placeholder:text-gray-400;
+           bg-white border border-gray-200
+           focus:border-sgu-blue focus:ring-2 focus:ring-sgu-blue/20
+           transition-colors duration-200 ease-out
+           placeholder:text-gray-400 outline-none;
   }
 
   .glass-panel {
-    @apply bg-white/70 backdrop-blur-2xl 
-           border border-white/50 
-           shadow-2xl shadow-gray-900/10;
+    @apply bg-white/80 backdrop-blur-md border border-gray-200 shadow-lg;
   }
 
   .status-badge {
@@ -93,8 +99,7 @@
   }
 
   .skeleton {
-    @apply bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200
-           bg-[length:200%_100%] animate-shimmer rounded;
+    @apply bg-gray-200 rounded animate-pulse;
   }
 }
 
@@ -137,20 +142,14 @@
     line-height: 1.5;
     color: black;
   }
-  
-  .print-document h1 {
-    font-size: 16pt;
-    font-weight: bold;
-    text-align: center;
-  }
-  
-  .print-document .signature-line {
-    border-bottom: 1px solid black;
-    min-width: 150px;
-    display: inline-block;
-  }
 }
 
 .print-only {
   display: none;
+}
+
+/* React Day Picker стили */
+.rdp {
+  --rdp-accent-color: #003366;
+  --rdp-background-color: #e6f0ff;
 }

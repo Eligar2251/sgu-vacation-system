@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
@@ -11,42 +11,29 @@ import {
   ClockIcon,
   XCircleIcon,
   ArrowRightIcon,
-  SunIcon,
-  SparklesIcon
+  SunIcon
 } from '@heroicons/react/24/outline';
 import { useAuthStore } from '../store/authStore';
 import { useVacationStore } from '../store/vacationStore';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { SkeletonCard } from '../components/ui/LoadingSpinner';
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 }
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
-
 export const DashboardPage = () => {
   const { profile } = useAuthStore();
   const { requests, fetchUserRequests, loading } = useVacationStore();
-  const [greeting, setGreeting] = useState('');
 
   useEffect(() => {
     if (profile?.id) {
       fetchUserRequests(profile.id);
     }
-
-    const hour = new Date().getHours();
-    if (hour < 12) setGreeting('Доброе утро');
-    else if (hour < 18) setGreeting('Добрый день');
-    else setGreeting('Добрый вечер');
   }, [profile]);
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Доброе утро';
+    if (hour < 18) return 'Добрый день';
+    return 'Добрый вечер';
+  };
 
   const remainingDays = (profile?.total_vacation_days || 0) - (profile?.used_vacation_days || 0);
   const usedPercent = ((profile?.used_vacation_days || 0) / (profile?.total_vacation_days || 1)) * 100;
@@ -61,26 +48,20 @@ export const DashboardPage = () => {
   const recentRequests = requests.slice(0, 3);
 
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="space-y-6"
-    >
+    <div className="space-y-6">
       {/* Welcome Section */}
       <motion.div
-        variants={itemVariants}
-        className="card bg-gradient-to-r from-sgu-blue via-sgu-blue-light to-sgu-blue text-white overflow-hidden relative"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="card bg-gradient-to-r from-sgu-blue to-sgu-blue-light text-white overflow-hidden relative"
       >
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-sgu-gold/20 rounded-full translate-y-1/2 -translate-x-1/2" />
-        
         <div className="relative z-10">
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2 text-white/80 mb-2">
                 <SunIcon className="w-5 h-5" />
-                <span>{greeting}</span>
+                <span>{getGreeting()}</span>
               </div>
               <h1 className="text-3xl font-bold mb-2">
                 {profile?.full_name?.split(' ')[0] || 'Пользователь'}!
@@ -103,20 +84,23 @@ export const DashboardPage = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Remaining Days */}
-        <motion.div variants={itemVariants} className="card">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="card"
+        >
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-              <CalendarDaysIcon className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
+              <CalendarDaysIcon className="w-6 h-6 text-emerald-600" />
             </div>
             <span className="text-3xl font-bold text-gray-900">{remainingDays}</span>
           </div>
           <p className="text-gray-600 font-medium">Доступно дней</p>
           <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${100 - usedPercent}%` }}
-              transition={{ duration: 1, ease: 'easeOut' }}
-              className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full"
+            <div
+              style={{ width: `${100 - usedPercent}%` }}
+              className="h-full bg-emerald-500 rounded-full transition-all duration-500"
             />
           </div>
           <p className="text-xs text-gray-400 mt-2">
@@ -125,10 +109,15 @@ export const DashboardPage = () => {
         </motion.div>
 
         {/* Pending */}
-        <motion.div variants={itemVariants} className="card">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.15 }}
+          className="card"
+        >
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
-              <ClockIcon className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
+              <ClockIcon className="w-6 h-6 text-amber-600" />
             </div>
             <span className="text-3xl font-bold text-gray-900">{stats.pending + stats.approvedHead}</span>
           </div>
@@ -139,10 +128,15 @@ export const DashboardPage = () => {
         </motion.div>
 
         {/* Approved */}
-        <motion.div variants={itemVariants} className="card">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+          className="card"
+        >
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
-              <CheckCircleIcon className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+              <CheckCircleIcon className="w-6 h-6 text-blue-600" />
             </div>
             <span className="text-3xl font-bold text-gray-900">{stats.approved}</span>
           </div>
@@ -153,10 +147,15 @@ export const DashboardPage = () => {
         </motion.div>
 
         {/* Rejected */}
-        <motion.div variants={itemVariants} className="card">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.25 }}
+          className="card"
+        >
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center shadow-lg shadow-gray-500/30">
-              <XCircleIcon className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center">
+              <XCircleIcon className="w-6 h-6 text-gray-600" />
             </div>
             <span className="text-3xl font-bold text-gray-900">{stats.rejected}</span>
           </div>
@@ -170,18 +169,19 @@ export const DashboardPage = () => {
       {/* Quick Actions & Recent Requests */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Quick Actions */}
-        <motion.div variants={itemVariants} className="card">
-          <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <SparklesIcon className="w-5 h-5 text-sgu-gold" />
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+          className="card"
+        >
+          <h2 className="text-lg font-bold text-gray-900 mb-4">
             Быстрые действия
           </h2>
           
           <div className="space-y-3">
             <Link to="/new-request">
-              <motion.div
-                whileHover={{ scale: 1.02, x: 5 }}
-                className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-sgu-blue/10 to-sgu-blue-light/10 hover:from-sgu-blue/20 hover:to-sgu-blue-light/20 transition-colors cursor-pointer"
-              >
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-sgu-blue/5 hover:bg-sgu-blue/10 transition-colors cursor-pointer">
                 <div className="w-10 h-10 rounded-lg bg-sgu-blue flex items-center justify-center">
                   <DocumentPlusIcon className="w-5 h-5 text-white" />
                 </div>
@@ -190,14 +190,11 @@ export const DashboardPage = () => {
                   <p className="text-sm text-gray-500">Оформить отпуск</p>
                 </div>
                 <ArrowRightIcon className="w-5 h-5 text-gray-400" />
-              </motion.div>
+              </div>
             </Link>
 
             <Link to="/my-requests">
-              <motion.div
-                whileHover={{ scale: 1.02, x: 5 }}
-                className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
-              >
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
                 <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center">
                   <ClipboardDocumentListIcon className="w-5 h-5 text-gray-600" />
                 </div>
@@ -206,14 +203,11 @@ export const DashboardPage = () => {
                   <p className="text-sm text-gray-500">История и статусы</p>
                 </div>
                 <ArrowRightIcon className="w-5 h-5 text-gray-400" />
-              </motion.div>
+              </div>
             </Link>
 
             <Link to="/calendar">
-              <motion.div
-                whileHover={{ scale: 1.02, x: 5 }}
-                className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
-              >
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
                 <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center">
                   <CalendarDaysIcon className="w-5 h-5 text-gray-600" />
                 </div>
@@ -222,13 +216,18 @@ export const DashboardPage = () => {
                   <p className="text-sm text-gray-500">График отпусков</p>
                 </div>
                 <ArrowRightIcon className="w-5 h-5 text-gray-400" />
-              </motion.div>
+              </div>
             </Link>
           </div>
         </motion.div>
 
         {/* Recent Requests */}
-        <motion.div variants={itemVariants} className="lg:col-span-2 card">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.35 }}
+          className="lg:col-span-2 card"
+        >
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-gray-900">Последние заявки</h2>
             <Link to="/my-requests" className="text-sm text-sgu-blue hover:underline">
@@ -239,27 +238,24 @@ export const DashboardPage = () => {
           {loading ? (
             <div className="space-y-4">
               {[1, 2, 3].map(i => (
-                <div key={i} className="animate-pulse flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
-                  <div className="w-12 h-12 bg-gray-200 rounded-xl" />
+                <div key={i} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+                  <div className="w-12 h-12 bg-gray-200 rounded-xl skeleton" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-1/3" />
-                    <div className="h-3 bg-gray-200 rounded w-1/4" />
+                    <div className="h-4 bg-gray-200 rounded w-1/3 skeleton" />
+                    <div className="h-3 bg-gray-200 rounded w-1/4 skeleton" />
                   </div>
-                  <div className="w-24 h-8 bg-gray-200 rounded-full" />
+                  <div className="w-24 h-8 bg-gray-200 rounded-full skeleton" />
                 </div>
               ))}
             </div>
           ) : recentRequests.length > 0 ? (
             <div className="space-y-3">
-              {recentRequests.map((request, index) => (
-                <motion.div
+              {recentRequests.map((request) => (
+                <div
                   key={request.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
                   className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-sgu-blue/20 to-sgu-blue-light/20 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-xl bg-sgu-blue/10 flex items-center justify-center">
                     <CalendarDaysIcon className="w-6 h-6 text-sgu-blue" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -271,7 +267,7 @@ export const DashboardPage = () => {
                     </p>
                   </div>
                   <StatusBadge status={request.status} />
-                </motion.div>
+                </div>
               ))}
             </div>
           ) : (
@@ -285,7 +281,7 @@ export const DashboardPage = () => {
           )}
         </motion.div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

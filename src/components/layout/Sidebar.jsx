@@ -1,6 +1,5 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { 
   HomeIcon,
   CalendarDaysIcon,
@@ -10,7 +9,10 @@ import {
   Cog6ToothIcon,
   ArrowLeftOnRectangleIcon,
   ChartBarIcon,
-  BuildingOffice2Icon
+  BuildingOffice2Icon,
+  XMarkIcon,
+  ClockIcon,
+  ArrowsRightLeftIcon
 } from '@heroicons/react/24/outline';
 import { SGULogo } from '../icons/SGULogo';
 import { useAuthStore } from '../../store/authStore';
@@ -20,6 +22,8 @@ const menuItems = {
     { path: '/dashboard', icon: HomeIcon, label: 'Главная' },
     { path: '/my-requests', icon: ClipboardDocumentListIcon, label: 'Мои заявки' },
     { path: '/new-request', icon: DocumentPlusIcon, label: 'Новая заявка' },
+    { path: '/schedule', icon: ClockIcon, label: 'Расписание' },
+    { path: '/replacements', icon: ArrowsRightLeftIcon, label: 'Замены' },
     { path: '/calendar', icon: CalendarDaysIcon, label: 'Календарь' },
   ],
   head: [
@@ -27,6 +31,8 @@ const menuItems = {
     { path: '/my-requests', icon: ClipboardDocumentListIcon, label: 'Мои заявки' },
     { path: '/new-request', icon: DocumentPlusIcon, label: 'Новая заявка' },
     { path: '/department-requests', icon: UsersIcon, label: 'Заявки кафедры' },
+    { path: '/schedule', icon: ClockIcon, label: 'Расписание' },
+    { path: '/replacements', icon: ArrowsRightLeftIcon, label: 'Замены' },
     { path: '/calendar', icon: CalendarDaysIcon, label: 'Календарь' },
   ],
   admin: [
@@ -34,7 +40,7 @@ const menuItems = {
     { path: '/all-requests', icon: ClipboardDocumentListIcon, label: 'Все заявки' },
     { path: '/users', icon: UsersIcon, label: 'Сотрудники' },
     { path: '/departments', icon: BuildingOffice2Icon, label: 'Кафедры' },
-    { path: '/statistics', icon: ChartBarIcon, label: 'Статистика' },
+    { path: '/schedule', icon: ClockIcon, label: 'Расписание' },
     { path: '/calendar', icon: CalendarDaysIcon, label: 'Календарь' },
     { path: '/settings', icon: Cog6ToothIcon, label: 'Настройки' },
   ]
@@ -46,41 +52,36 @@ export const Sidebar = ({ isOpen, onClose }) => {
   const role = profile?.role || 'teacher';
   const items = menuItems[role] || menuItems.teacher;
 
-  const handleSignOut = async () => {
-    await signOut();
-  };
-
   return (
     <>
-      {/* Overlay for mobile */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
-          />
-        )}
-      </AnimatePresence>
+      {isOpen && (
+        <div
+          onClick={onClose}
+          className="fixed inset-0 bg-black/20 z-40 lg:hidden"
+        />
+      )}
 
-      {/* Sidebar */}
-      <motion.aside
-        initial={{ x: -300 }}
-        animate={{ x: isOpen ? 0 : -300 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className={`fixed left-0 top-0 bottom-0 w-72 z-50 
-          glass-panel rounded-r-3xl
+      <aside
+        className={`
+          fixed left-0 top-0 bottom-0 w-72 z-50 
+          bg-white border-r border-gray-200 shadow-lg
           flex flex-col
-          lg:translate-x-0 lg:static lg:z-auto`}
+          transform transition-transform duration-200 ease-out
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          lg:translate-x-0
+        `}
       >
-        {/* Logo */}
-        <div className="p-6 border-b border-gray-200/50">
+        <button
+          onClick={onClose}
+          className="lg:hidden absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-100"
+        >
+          <XMarkIcon className="w-6 h-6 text-gray-500" />
+        </button>
+
+        <div className="p-6 border-b border-gray-200">
           <SGULogo className="w-full" />
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto scrollbar-hide">
           {items.map((item) => {
             const isActive = location.pathname === item.path;
@@ -90,34 +91,23 @@ export const Sidebar = ({ isOpen, onClose }) => {
                 key={item.path}
                 to={item.path}
                 onClick={onClose}
-                className="block"
+                className={`
+                  flex items-center gap-3 px-4 py-3 rounded-xl transition-colors duration-150
+                  ${isActive 
+                    ? 'bg-sgu-blue text-white shadow-md' 
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  }
+                `}
               >
-                <motion.div
-                  whileHover={{ x: 4 }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
-                    ${isActive 
-                      ? 'bg-gradient-to-r from-sgu-blue to-sgu-blue-light text-white shadow-lg shadow-sgu-blue/25' 
-                      : 'text-gray-600 hover:bg-gray-100/80 hover:text-gray-900'
-                    }`}
-                >
-                  <item.icon className={`w-5 h-5 ${isActive ? 'text-white' : ''}`} />
-                  <span className="font-medium">{item.label}</span>
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeIndicator"
-                      className="ml-auto w-2 h-2 rounded-full bg-white/80"
-                    />
-                  )}
-                </motion.div>
+                <item.icon className="w-5 h-5" />
+                <span className="font-medium">{item.label}</span>
               </NavLink>
             );
           })}
         </nav>
 
-        {/* User info & Logout */}
-        <div className="p-4 border-t border-gray-200/50">
-          <div className="p-4 rounded-xl bg-gray-100/50 mb-3">
+        <div className="p-4 border-t border-gray-200">
+          <div className="p-4 rounded-xl bg-gray-50 mb-3">
             <p className="font-semibold text-gray-900 truncate">
               {profile?.full_name || 'Пользователь'}
             </p>
@@ -133,19 +123,17 @@ export const Sidebar = ({ isOpen, onClose }) => {
             </span>
           </div>
           
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleSignOut}
+          <button
+            onClick={signOut}
             className="w-full flex items-center justify-center gap-2 px-4 py-3 
               rounded-xl text-red-600 hover:bg-red-50 
-              transition-colors duration-200 font-medium"
+              transition-colors duration-150 font-medium"
           >
             <ArrowLeftOnRectangleIcon className="w-5 h-5" />
             Выйти
-          </motion.button>
+          </button>
         </div>
-      </motion.aside>
+      </aside>
     </>
   );
 };

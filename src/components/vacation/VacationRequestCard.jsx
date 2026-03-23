@@ -10,7 +10,9 @@ import {
   PrinterIcon,
   TrashIcon,
   EyeIcon,
-  DocumentTextIcon
+  DocumentTextIcon,
+  CheckCircleIcon,
+  XCircleIcon
 } from '@heroicons/react/24/outline';
 import { StatusBadge, VacationTypeBadge } from '../ui/StatusBadge';
 import { PrintableApplication } from '../print/PrintableApplication';
@@ -26,7 +28,6 @@ export const VacationRequestCard = ({
 }) => {
   const { profile } = useAuthStore();
   const [expanded, setExpanded] = useState(false);
-  const [printType, setPrintType] = useState(null);
   
   const applicationRef = useRef();
   const orderRef = useRef();
@@ -108,13 +109,14 @@ export const VacationRequestCard = ({
         )}
 
         {/* Actions */}
-        <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+        <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-2">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setExpanded(!expanded)}
               className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Подробнее"
             >
               <EyeIcon className="w-5 h-5" />
             </motion.button>
@@ -149,30 +151,34 @@ export const VacationRequestCard = ({
                 whileTap={{ scale: 0.95 }}
                 onClick={() => onDelete?.(request.id)}
                 className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                title="Удалить"
               >
                 <TrashIcon className="w-5 h-5" />
               </motion.button>
             )}
           </div>
 
-          {showActions && (request.status === 'pending' || request.status === 'approved_head') && (
+          {/* Показываем кнопки если передан showActions */}
+          {showActions && onApprove && onReject && (
             <div className="flex items-center gap-2">
-              {onReject && (
-                <button
-                  onClick={() => onReject(request.id)}
-                  className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg font-medium transition-colors"
-                >
-                  Отклонить
-                </button>
-              )}
-              {onApprove && (
-                <button
-                  onClick={() => onApprove(request.id)}
-                  className="btn-success !py-2 !px-4"
-                >
-                  Одобрить
-                </button>
-              )}
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => onReject(request.id)}
+                className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl font-medium transition-colors"
+              >
+                <XCircleIcon className="w-5 h-5" />
+                Отклонить
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => onApprove(request.id)}
+                className="flex items-center gap-2 btn-success !py-2 !px-4"
+              >
+                <CheckCircleIcon className="w-5 h-5" />
+                Одобрить
+              </motion.button>
             </div>
           )}
         </div>
@@ -201,6 +207,15 @@ export const VacationRequestCard = ({
                   </div>
                 )}
                 
+                {request.head_approved_at && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Дата одобрения завкафедрой:</span>
+                    <span className="font-medium">
+                      {format(new Date(request.head_approved_at), 'dd.MM.yyyy HH:mm')}
+                    </span>
+                  </div>
+                )}
+                
                 {request.head_comment && (
                   <div className="p-3 bg-blue-50 rounded-lg">
                     <p className="text-xs text-blue-600 mb-1">Комментарий завкафедрой:</p>
@@ -215,10 +230,26 @@ export const VacationRequestCard = ({
                   </div>
                 )}
                 
-                {request.admin_comment && (
+                {request.admin_approved_at && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Дата одобрения администратором:</span>
+                    <span className="font-medium">
+                      {format(new Date(request.admin_approved_at), 'dd.MM.yyyy HH:mm')}
+                    </span>
+                  </div>
+                )}
+                
+                {request.admin_comment && request.status !== 'rejected' && (
                   <div className="p-3 bg-purple-50 rounded-lg">
                     <p className="text-xs text-purple-600 mb-1">Комментарий отдела кадров:</p>
                     <p className="text-purple-800">{request.admin_comment}</p>
+                  </div>
+                )}
+
+                {request.status === 'rejected' && request.admin_comment && (
+                  <div className="p-3 bg-red-50 rounded-lg">
+                    <p className="text-xs text-red-600 mb-1">Причина отклонения:</p>
+                    <p className="text-red-800">{request.admin_comment}</p>
                   </div>
                 )}
               </div>

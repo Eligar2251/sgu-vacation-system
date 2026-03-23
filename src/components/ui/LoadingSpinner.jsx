@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 
 export const LoadingSpinner = ({ size = 'md', className = '' }) => {
   const sizes = {
@@ -11,41 +10,24 @@ export const LoadingSpinner = ({ size = 'md', className = '' }) => {
 
   return (
     <div className={`flex items-center justify-center ${className}`}>
-      <motion.div
-        className={`${sizes[size]} border-3 border-sgu-blue/20 border-t-sgu-blue rounded-full`}
-        animate={{ rotate: 360 }}
-        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+      <div
+        className={`${sizes[size]} border-3 border-sgu-blue/20 border-t-sgu-blue rounded-full animate-spin`}
       />
     </div>
   );
 };
 
 export const LoadingScreen = ({ message = 'Загрузка...' }) => (
-  <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-sgu-gray via-white to-sgu-gray">
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center gap-6"
-    >
-      <div className="relative">
-        <motion.div
-          className="w-20 h-20 rounded-full border-4 border-sgu-blue/20"
-          animate={{ scale: [1, 1.1, 1] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        />
-        <motion.div
-          className="absolute inset-0 w-20 h-20 rounded-full border-4 border-transparent border-t-sgu-blue"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-        />
-      </div>
+  <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="flex flex-col items-center gap-6">
+      <div className="w-16 h-16 border-4 border-sgu-blue/20 border-t-sgu-blue rounded-full animate-spin" />
       <p className="text-lg text-gray-600 font-medium">{message}</p>
-    </motion.div>
+    </div>
   </div>
 );
 
 export const SkeletonCard = () => (
-  <div className="card animate-pulse">
+  <div className="card">
     <div className="flex items-start gap-4">
       <div className="w-12 h-12 rounded-xl skeleton" />
       <div className="flex-1 space-y-3">
@@ -63,7 +45,7 @@ export const SkeletonCard = () => (
 export const SkeletonTable = ({ rows = 5 }) => (
   <div className="space-y-3">
     {Array.from({ length: rows }).map((_, i) => (
-      <div key={i} className="flex gap-4 p-4 bg-white rounded-xl animate-pulse">
+      <div key={i} className="flex gap-4 p-4 bg-white rounded-xl">
         <div className="w-10 h-10 rounded-lg skeleton" />
         <div className="flex-1 space-y-2">
           <div className="h-4 w-1/3 skeleton" />

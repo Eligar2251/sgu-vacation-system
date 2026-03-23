@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { 
   ClockIcon, 
   CheckCircleIcon, 
@@ -11,26 +10,22 @@ const statusConfig = {
   pending: {
     label: 'На рассмотрении',
     className: 'bg-amber-100 text-amber-800 border-amber-200',
-    icon: ClockIcon,
-    iconClassName: 'text-amber-500'
+    icon: ClockIcon
   },
   approved_head: {
     label: 'Одобрено завкафедрой',
     className: 'bg-blue-100 text-blue-800 border-blue-200',
-    icon: ArrowPathIcon,
-    iconClassName: 'text-blue-500'
+    icon: ArrowPathIcon
   },
   approved: {
     label: 'Одобрено',
     className: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-    icon: CheckCircleIcon,
-    iconClassName: 'text-emerald-500'
+    icon: CheckCircleIcon
   },
   rejected: {
     label: 'Отклонено',
     className: 'bg-red-100 text-red-800 border-red-200',
-    icon: XCircleIcon,
-    iconClassName: 'text-red-500'
+    icon: XCircleIcon
   }
 };
 
@@ -57,30 +52,16 @@ const vacationTypeConfig = {
   }
 };
 
-export const StatusBadge = ({ status, animate = true }) => {
+export const StatusBadge = ({ status }) => {
   const config = statusConfig[status] || statusConfig.pending;
   const Icon = config.icon;
 
-  const badge = (
+  return (
     <span className={`status-badge border ${config.className}`}>
-      <Icon className={`w-4 h-4 ${config.iconClassName}`} />
+      <Icon className="w-4 h-4" />
       {config.label}
     </span>
   );
-
-  if (animate) {
-    return (
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.2 }}
-      >
-        {badge}
-      </motion.div>
-    );
-  }
-
-  return badge;
 };
 
 export const VacationTypeBadge = ({ type }) => {

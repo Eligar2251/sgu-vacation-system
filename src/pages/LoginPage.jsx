@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { 
   EnvelopeIcon, 
   LockClosedIcon,
@@ -8,35 +6,49 @@ import {
   EyeSlashIcon,
   ArrowRightIcon
 } from '@heroicons/react/24/outline';
-import { SGULogoFull, SGULogo } from '../components/icons/SGULogo';
+import { SGULogo } from '../components/icons/SGULogo';
 import { useAuthStore } from '../store/authStore';
 import { showToast } from '../components/ui/Toast';
 
+// === УДАЛИТЬ ПЕРЕД ПРОДАКШЕНОМ ===
+import { QuickLogin } from '../components/dev/QuickLogin';
+// =================================
+
 export const LoginPage = () => {
-  const { signIn, user, loading } = useAuthStore();
+  const { signIn, loading } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (user) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!email.trim() || !password) {
+      showToast.error('Заполните все поля');
+      return;
+    }
+    
     setIsSubmitting(true);
 
     const result = await signIn(email, password);
     
     if (result.success) {
-      showToast.success('Добро пожаловать в систему!');
+      showToast.success('Добро пожаловать!');
     } else {
-      showToast.error(result.error || 'Ошибка входа');
+      let errorMessage = 'Ошибка входа';
+      if (result.error?.includes('Invalid login')) {
+        errorMessage = 'Неверный email или пароль';
+      } else if (result.error?.includes('Email not confirmed')) {
+        errorMessage = 'Email не подтвержден';
+      }
+      showToast.error(errorMessage);
     }
     
     setIsSubmitting(false);
   };
+
+  const isLoading = loading || isSubmitting;
 
   return (
     <div className="min-h-screen flex">
@@ -45,23 +57,13 @@ export const LoginPage = () => {
         <div className="absolute inset-0">
           <div className="absolute top-1/4 -left-20 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
           <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-sgu-gold/20 rounded-full blur-3xl" />
-          <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-white/5 rounded-full blur-2xl" />
         </div>
 
         <div className="relative z-10 flex flex-col items-center justify-center w-full p-12 text-white">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center"
-          >
-            <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-              className="mb-8"
-            >
-              <SGULogo variant="icon" className="w-32 h-32 mx-auto drop-shadow-2xl" />
-            </motion.div>
+          <div className="text-center">
+            <div className="mb-8">
+              <SGULogo variant="icon" className="w-32 h-32 mx-auto" />
+            </div>
 
             <h1 className="text-4xl font-bold mb-4">
               Сочинский государственный
@@ -78,15 +80,9 @@ export const LoginPage = () => {
               <span className="text-sm uppercase tracking-wider">АСУ ОП СГУ</span>
               <div className="w-12 h-px bg-sgu-gold/50" />
             </div>
-          </motion.div>
+          </div>
 
-          {/* Features */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-            className="absolute bottom-12 left-12 right-12"
-          >
+          <div className="absolute bottom-12 left-12 right-12">
             <div className="grid grid-cols-3 gap-6 text-center text-sm">
               {[
                 { icon: '📋', text: 'Электронные заявки' },
@@ -99,18 +95,13 @@ export const LoginPage = () => {
                 </div>
               ))}
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
 
       {/* Right side - Login Form */}
       <div className="flex-1 flex items-center justify-center p-8 bg-gradient-to-br from-gray-50 to-gray-100">
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-md"
-        >
+        <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden mb-8 text-center">
             <SGULogo variant="icon" className="w-20 h-20 mx-auto mb-4" />
@@ -137,7 +128,9 @@ export const LoginPage = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your.email@sgu.ru"
                     required
-                    className="input-field pl-12"
+                    disabled={isLoading}
+                    className="input-field pl-12 disabled:opacity-50"
+                    autoComplete="email"
                   />
                 </div>
               </div>
@@ -154,11 +147,14 @@ export const LoginPage = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="input-field pl-12 pr-12"
+                    disabled={isLoading}
+                    className="input-field pl-12 pr-12 disabled:opacity-50"
+                    autoComplete="current-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
+                    disabled={isLoading}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
                     {showPassword ? (
@@ -170,20 +166,14 @@ export const LoginPage = () => {
                 </div>
               </div>
 
-              <motion.button
+              <button
                 type="submit"
-                disabled={isSubmitting || loading}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                disabled={isLoading}
                 className="btn-primary w-full disabled:opacity-70"
               >
-                {isSubmitting ? (
+                {isLoading ? (
                   <span className="flex items-center justify-center gap-2">
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                      className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
-                    />
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     Вход...
                   </span>
                 ) : (
@@ -192,7 +182,7 @@ export const LoginPage = () => {
                     <ArrowRightIcon className="w-5 h-5" />
                   </span>
                 )}
-              </motion.button>
+              </button>
             </form>
 
             <div className="mt-6 text-center text-sm text-gray-500">
@@ -203,21 +193,11 @@ export const LoginPage = () => {
             </div>
           </div>
 
-          {/* Demo credentials */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-            className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl"
-          >
-            <p className="text-sm text-amber-800 font-medium mb-2">Демо-доступ:</p>
-            <div className="text-xs text-amber-700 space-y-1">
-              <p><strong>Админ:</strong> admin@sgu.ru / admin123</p>
-              <p><strong>Завкафедрой:</strong> head@sgu.ru / head123</p>
-              <p><strong>Преподаватель:</strong> teacher@sgu.ru / teacher123</p>
-            </div>
-          </motion.div>
-        </motion.div>
+          {/* === УДАЛИТЬ ПЕРЕД ПРОДАКШЕНОМ === */}
+          <QuickLogin />
+          {/* ================================= */}
+
+        </div>
       </div>
     </div>
   );

@@ -5,8 +5,12 @@ import {
   ClipboardDocumentListIcon,
   CheckIcon,
   XMarkIcon,
+  CalendarDaysIcon,
   UserIcon,
-  ArrowPathIcon
+  ExclamationTriangleIcon,
+  ArrowPathIcon,
+  DocumentTextIcon,
+  PrinterIcon
 } from '@heroicons/react/24/outline';
 import { format, parseISO } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -17,16 +21,18 @@ import { SkeletonCard } from '../components/ui/LoadingSpinner';
 import { showToast } from '../components/ui/Toast';
 import { db } from '../lib/supabase';
 
-export const AllRequestsPage = () => {
+export const AdminRequestsPage = () => {
   const { profile } = useAuthStore();
-  const { allRequests, fetchAllRequests, rejectRequest, loading } = useVacationStore();
+  const { allRequests, fetchAllRequests, approveByAdmin, rejectRequest, loading } = useVacationStore();
   const [filter, setFilter] = useState('pending');
   
+  // Модалка одобрения
   const [approveModal, setApproveModal] = useState({ open: false, request: null });
   const [orderNumber, setOrderNumber] = useState('');
   const [adminComment, setAdminComment] = useState('');
   const [savingApproval, setSavingApproval] = useState(false);
   
+  // Модалка отклонения
   const [rejectModal, setRejectModal] = useState({ open: false, requestId: null });
   const [rejectComment, setRejectComment] = useState('');
 
@@ -34,14 +40,16 @@ export const AllRequestsPage = () => {
     fetchAllRequests();
   }, []);
 
+  // Фильтрация заявок
   const filteredRequests = allRequests.filter(req => {
-    if (filter === 'pending') return req.status === 'approved_head';
+    if (filter === 'pending') return req.status === 'approved_head'; // Ожидают одобрения админа
     if (filter === 'all_pending') return req.status === 'pending' || req.status === 'approved_head';
     if (filter === 'approved') return req.status === 'approved';
     if (filter === 'rejected') return req.status === 'rejected';
     return true;
   });
 
+  // Статистика
   const stats = {
     awaitingAdmin: allRequests.filter(r => r.status === 'approved_head').length,
     awaitingHead: allRequests.filter(r => r.status === 'pending').length,
@@ -53,6 +61,7 @@ export const AllRequestsPage = () => {
     const request = allRequests.find(r => r.id === requestId);
     if (!request) return;
     
+    // Генерируем номер приказа
     const year = new Date().getFullYear();
     const orderNum = `${Math.floor(Math.random() * 9000) + 1000}-О/${year}`;
     setOrderNumber(orderNum);
@@ -72,51 +81,31 @@ export const AllRequestsPage = () => {
     setSavingApproval(true);
     
     try {
-      // 1. Проверяем текущие использованные дни (защита от двойного списания)
-      const { data: currentProfile, error: profileCheckError } = await db.supabase
-        .from('profiles')
-        .select('used_vacation_days, total_vacation_days')
-        .eq('id', request.user_id)
-        .single();
+      // Обновляем заявку с номером приказа
+      await db.vacationRequests.approveByAdmin(request.id, profile.id, adminComment || null);
       
-      if (profileCheckError) {
-        throw new Error('Не удалось получить данные профиля');
-      }
-
-      // 2. Одобряем заявку
-      const { error: approveError } = await db.supabase
-        .from('vacation_requests')
-        .update({
-          status: 'approved',
-          approved_by_admin: profile.id,
-          admin_approved_at: new Date().toISOString(),
-          admin_comment: adminComment || null,
-          order_number: orderNumber || null
-        })
-        .eq('id', request.id)
-        .eq('status', 'approved_head'); // Защита: только если статус approved_head
-      
-      if (approveError) {
-        throw approveError;
+      // Обновляем номер приказа отдельно если он есть
+      if (orderNumber) {
+        const { error } = await db.supabase
+          .from('vacation_requests')
+          .update({ order_number: orderNumber })
+          .eq('id', request.id);
+        
+        if (error) console.warn('Error updating order number:', error);
       }
       
-      // 3. Обновляем использованные дни (ОДИН РАЗ)
-      const currentUsed = currentProfile.used_vacation_days || 0;
-      const newUsedDays = currentUsed + request.days_count;
-      
-      const { error: updateError } = await db.supabase
-        .from('profiles')
-        .update({ 
-          used_vacation_days: newUsedDays,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', request.user_id);
-      
-      if (updateError) {
-        console.warn('Error updating vacation days:', updateError);
+      // Обновляем использованные дни отпуска у сотрудника
+      if (request.user_id && request.days_count) {
+        try {
+          const userProfile = await db.profiles.getById(request.user_id);
+          const newUsedDays = (userProfile.used_vacation_days || 0) + request.days_count;
+          await db.profiles.update(request.user_id, { used_vacation_days: newUsedDays });
+        } catch (err) {
+          console.warn('Error updating vacation days:', err);
+        }
       }
       
-      showToast.success(`Заявка одобрена. Списано ${request.days_count} дн. Осталось: ${(currentProfile.total_vacation_days || 0) - newUsedDays} дн.`);
+      showToast.success('Заявка одобрена. Приказ сформирован.');
       setApproveModal({ open: false, request: null });
       setOrderNumber('');
       setAdminComment('');
@@ -161,13 +150,16 @@ export const AllRequestsPage = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
             <ClipboardDocumentListIcon className="w-8 h-8 text-sgu-blue" />
-            Все заявки на отпуск
+            Заявки на отпуск
           </h1>
           <p className="text-gray-500">Управление заявками всех сотрудников</p>
         </div>
 
-        <button onClick={() => fetchAllRequests()} disabled={loading} className="btn-secondary">
-          <ArrowPathIcon className={`w-5 h-5 mr-2 ${loading ? 'animate-spin' : ''}`} />
+        <button
+          onClick={() => fetchAllRequests()}
+          className="btn-secondary"
+        >
+          <ArrowPathIcon className="w-5 h-5 mr-2" />
           Обновить
         </button>
       </div>
@@ -177,7 +169,7 @@ export const AllRequestsPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="card bg-gradient-to-br from-amber-500 to-orange-500 text-white cursor-pointer hover:shadow-lg transition-shadow"
+          className="card bg-gradient-to-br from-amber-500 to-orange-500 text-white cursor-pointer"
           onClick={() => setFilter('pending')}
         >
           <div className="flex items-center justify-between">
@@ -201,7 +193,7 @@ export const AllRequestsPage = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-500 text-sm">У завкафедры</p>
-              <p className="text-3xl font-bold text-blue-600">{stats.awaitingHead}</p>
+              <p className="text-3xl font-bold text-gray-900">{stats.awaitingHead}</p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
               <UserIcon className="w-6 h-6 text-blue-600" />
@@ -250,31 +242,51 @@ export const AllRequestsPage = () => {
       <div className="flex gap-2 flex-wrap">
         <button
           onClick={() => setFilter('pending')}
-          className={`px-4 py-2 rounded-xl font-medium transition-all ${filter === 'pending' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+          className={`px-4 py-2 rounded-xl font-medium transition-all ${
+            filter === 'pending'
+              ? 'bg-amber-500 text-white'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
         >
           На рассмотрении ({stats.awaitingAdmin})
         </button>
         <button
           onClick={() => setFilter('all_pending')}
-          className={`px-4 py-2 rounded-xl font-medium transition-all ${filter === 'all_pending' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+          className={`px-4 py-2 rounded-xl font-medium transition-all ${
+            filter === 'all_pending'
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
         >
           Все ожидающие
         </button>
         <button
           onClick={() => setFilter('approved')}
-          className={`px-4 py-2 rounded-xl font-medium transition-all ${filter === 'approved' ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+          className={`px-4 py-2 rounded-xl font-medium transition-all ${
+            filter === 'approved'
+              ? 'bg-emerald-500 text-white'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
         >
           Одобренные
         </button>
         <button
           onClick={() => setFilter('rejected')}
-          className={`px-4 py-2 rounded-xl font-medium transition-all ${filter === 'rejected' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+          className={`px-4 py-2 rounded-xl font-medium transition-all ${
+            filter === 'rejected'
+              ? 'bg-red-500 text-white'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
         >
           Отклонённые
         </button>
         <button
           onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded-xl font-medium transition-all ${filter === 'all' ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+          className={`px-4 py-2 rounded-xl font-medium transition-all ${
+            filter === 'all'
+              ? 'bg-gray-700 text-white'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
         >
           Все
         </button>
@@ -282,7 +294,9 @@ export const AllRequestsPage = () => {
 
       {/* Requests List */}
       {loading ? (
-        <div className="space-y-4">{[1, 2, 3].map(i => <SkeletonCard key={i} />)}</div>
+        <div className="space-y-4">
+          {[1, 2, 3].map(i => <SkeletonCard key={i} />)}
+        </div>
       ) : filteredRequests.length > 0 ? (
         <div className="space-y-4">
           {filteredRequests.map((request) => (
@@ -302,17 +316,25 @@ export const AllRequestsPage = () => {
             {filter === 'pending' ? 'Нет заявок на рассмотрении' : 'Заявок не найдено'}
           </h3>
           <p className="text-gray-500">
-            {filter === 'pending' ? 'Все заявки обработаны' : 'По выбранному фильтру заявок нет'}
+            {filter === 'pending' 
+              ? 'Все заявки, ожидающие вашего решения, обработаны'
+              : 'По выбранному фильтру заявок нет'}
           </p>
         </div>
       )}
 
       {/* Approve Modal */}
-      <Dialog open={approveModal.open} onClose={() => setApproveModal({ open: false, request: null })} className="relative z-50">
+      <Dialog
+        open={approveModal.open}
+        onClose={() => setApproveModal({ open: false, request: null })}
+        className="relative z-50"
+      >
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <Dialog.Panel className="w-full max-w-lg bg-white rounded-2xl p-6 shadow-xl">
-            <Dialog.Title className="text-xl font-bold text-gray-900 mb-4">Одобрение заявки</Dialog.Title>
+            <Dialog.Title className="text-xl font-bold text-gray-900 mb-4">
+              Одобрение заявки
+            </Dialog.Title>
 
             {approveModal.request && (
               <div className="mb-6 p-4 bg-gray-50 rounded-xl">
@@ -321,8 +343,12 @@ export const AllRequestsPage = () => {
                     <UserIcon className="w-5 h-5 text-sgu-blue" />
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900">{approveModal.request.user?.full_name}</p>
-                    <p className="text-sm text-gray-500">{approveModal.request.user?.position}</p>
+                    <p className="font-semibold text-gray-900">
+                      {approveModal.request.user?.full_name}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {approveModal.request.user?.position}
+                    </p>
                   </div>
                 </div>
                 
@@ -334,8 +360,8 @@ export const AllRequestsPage = () => {
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-500">Будет списано:</span>
-                    <p className="font-medium text-sgu-blue">{approveModal.request.days_count} дн.</p>
+                    <span className="text-gray-500">Дней:</span>
+                    <p className="font-medium">{approveModal.request.days_count}</p>
                   </div>
                 </div>
 
@@ -350,7 +376,9 @@ export const AllRequestsPage = () => {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Номер приказа</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Номер приказа
+                </label>
                 <input
                   type="text"
                   value={orderNumber}
@@ -361,7 +389,9 @@ export const AllRequestsPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Комментарий (необязательно)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Комментарий (необязательно)
+                </label>
                 <textarea
                   value={adminComment}
                   onChange={(e) => setAdminComment(e.target.value)}
@@ -373,12 +403,27 @@ export const AllRequestsPage = () => {
             </div>
 
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setApproveModal({ open: false, request: null })} className="btn-secondary flex-1">Отмена</button>
-              <button onClick={confirmApprove} disabled={savingApproval} className="btn-success flex-1 disabled:opacity-50">
+              <button
+                onClick={() => setApproveModal({ open: false, request: null })}
+                className="btn-secondary flex-1"
+              >
+                Отмена
+              </button>
+              <button
+                onClick={confirmApprove}
+                disabled={savingApproval}
+                className="btn-success flex-1"
+              >
                 {savingApproval ? (
-                  <><ArrowPathIcon className="w-5 h-5 mr-2 animate-spin" />Сохранение...</>
+                  <>
+                    <ArrowPathIcon className="w-5 h-5 mr-2 animate-spin" />
+                    Сохранение...
+                  </>
                 ) : (
-                  <><CheckIcon className="w-5 h-5 mr-2" />Одобрить</>
+                  <>
+                    <CheckIcon className="w-5 h-5 mr-2" />
+                    Одобрить
+                  </>
                 )}
               </button>
             </div>
@@ -387,14 +432,22 @@ export const AllRequestsPage = () => {
       </Dialog>
 
       {/* Reject Modal */}
-      <Dialog open={rejectModal.open} onClose={() => setRejectModal({ open: false, requestId: null })} className="relative z-50">
+      <Dialog
+        open={rejectModal.open}
+        onClose={() => setRejectModal({ open: false, requestId: null })}
+        className="relative z-50"
+      >
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <Dialog.Panel className="w-full max-w-md bg-white rounded-2xl p-6 shadow-xl">
-            <Dialog.Title className="text-xl font-bold text-gray-900 mb-4">Отклонить заявку</Dialog.Title>
+            <Dialog.Title className="text-xl font-bold text-gray-900 mb-4">
+              Отклонить заявку
+            </Dialog.Title>
 
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Причина отклонения <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Причина отклонения <span className="text-red-500">*</span>
+              </label>
               <textarea
                 value={rejectComment}
                 onChange={(e) => setRejectComment(e.target.value)}
@@ -406,9 +459,22 @@ export const AllRequestsPage = () => {
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => { setRejectModal({ open: false, requestId: null }); setRejectComment(''); }} className="btn-secondary flex-1">Отмена</button>
-              <button onClick={confirmReject} disabled={!rejectComment.trim()} className="btn-danger flex-1 disabled:opacity-50">
-                <XMarkIcon className="w-5 h-5 mr-2" />Отклонить
+              <button
+                onClick={() => {
+                  setRejectModal({ open: false, requestId: null });
+                  setRejectComment('');
+                }}
+                className="btn-secondary flex-1"
+              >
+                Отмена
+              </button>
+              <button
+                onClick={confirmReject}
+                disabled={!rejectComment.trim()}
+                className="btn-danger flex-1 disabled:opacity-50"
+              >
+                <XMarkIcon className="w-5 h-5 mr-2" />
+                Отклонить
               </button>
             </div>
           </Dialog.Panel>
@@ -418,4 +484,4 @@ export const AllRequestsPage = () => {
   );
 };
 
-export default AllRequestsPage;
+export default AdminRequestsPage;
