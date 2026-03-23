@@ -1,0 +1,156 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+  
+  body {
+    @apply font-body text-gray-900 antialiased;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-6 py-3 
+           bg-gradient-to-r from-sgu-blue to-sgu-blue-light 
+           text-white font-semibold rounded-xl 
+           shadow-lg shadow-sgu-blue/25
+           hover:shadow-xl hover:shadow-sgu-blue/30 
+           hover:scale-[1.02] active:scale-[0.98]
+           transition-all duration-200 ease-out
+           focus:outline-none focus:ring-2 focus:ring-sgu-blue/50 focus:ring-offset-2;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-6 py-3 
+           bg-white text-sgu-blue font-semibold rounded-xl 
+           border-2 border-sgu-blue/20
+           shadow-md hover:shadow-lg 
+           hover:border-sgu-blue/40 hover:bg-sgu-blue/5
+           active:scale-[0.98]
+           transition-all duration-200 ease-out
+           focus:outline-none focus:ring-2 focus:ring-sgu-blue/30 focus:ring-offset-2;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center px-6 py-3 
+           bg-gradient-to-r from-red-500 to-red-600 
+           text-white font-semibold rounded-xl 
+           shadow-lg shadow-red-500/25
+           hover:shadow-xl hover:shadow-red-500/30 
+           hover:scale-[1.02] active:scale-[0.98]
+           transition-all duration-200 ease-out
+           focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:ring-offset-2;
+  }
+
+  .btn-success {
+    @apply inline-flex items-center justify-center px-6 py-3 
+           bg-gradient-to-r from-emerald-500 to-emerald-600 
+           text-white font-semibold rounded-xl 
+           shadow-lg shadow-emerald-500/25
+           hover:shadow-xl hover:shadow-emerald-500/30 
+           hover:scale-[1.02] active:scale-[0.98]
+           transition-all duration-200 ease-out
+           focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:ring-offset-2;
+  }
+
+  .card {
+    @apply bg-white/80 backdrop-blur-xl rounded-2xl 
+           shadow-xl shadow-gray-900/5 
+           border border-white/50
+           p-6 transition-all duration-300;
+  }
+
+  .card-hover {
+    @apply hover:shadow-2xl hover:shadow-gray-900/10 
+           hover:-translate-y-1 hover:bg-white/90;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 rounded-xl 
+           bg-white/50 border border-gray-200
+           focus:border-sgu-blue focus:ring-4 focus:ring-sgu-blue/10
+           transition-all duration-200 ease-out
+           placeholder:text-gray-400;
+  }
+
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-2xl 
+           border border-white/50 
+           shadow-2xl shadow-gray-900/10;
+  }
+
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 
+           rounded-full text-sm font-medium;
+  }
+
+  .skeleton {
+    @apply bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200
+           bg-[length:200%_100%] animate-shimmer rounded;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-sgu-blue via-sgu-blue-light to-sgu-gold 
+           bg-clip-text text-transparent;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Стили для печати */
+@media print {
+  body {
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+  
+  .print-document {
+    padding: 20mm;
+    font-family: 'Times New Roman', serif;
+    font-size: 14pt;
+    line-height: 1.5;
+    color: black;
+  }
+  
+  .print-document h1 {
+    font-size: 16pt;
+    font-weight: bold;
+    text-align: center;
+  }
+  
+  .print-document .signature-line {
+    border-bottom: 1px solid black;
+    min-width: 150px;
+    display: inline-block;
+  }
+}
+
+.print-only {
+  display: none;
+}
