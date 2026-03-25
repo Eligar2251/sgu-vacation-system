@@ -96,268 +96,347 @@ src/
 ├── App.jsx
 ├── index.css
 └── index.jsx
-Frontend
-The frontend is implemented in React and located in the src/ directory.
+```
 
-Entry point
-src/index.jsx — application startup
-src/App.jsx — routing and protected routes
-src/index.css — global styles
-Pages
-src/pages/LoginPage.jsx
-src/pages/DashboardPage.jsx
-src/pages/MyRequestsPage.jsx
-src/pages/NewRequestPage.jsx
-src/pages/CalendarPage.jsx
-src/pages/SchedulePage.jsx
-src/pages/ReplacementsPage.jsx
-src/pages/DepartmentRequestsPage.jsx
-src/pages/AllRequestsPage.jsx
-src/pages/AdminRequestsPage.jsx
-src/pages/UsersPage.jsx
-src/pages/DepartmentsPage.jsx
-src/pages/SettingsPage.jsx
-Components
-src/components/layout/* — layout components
-src/components/ui/* — UI elements
-src/components/vacation/* — vacation request components
-src/components/calendar/* — calendar
-src/components/print/* — printable documents
-src/components/icons/* — logo and icons
-State management
-src/store/authStore.jsx
-src/store/vacationStore.jsx
-src/store/notificationStore.jsx
-Backend
+## Frontend
+
+The frontend is implemented in **React** and located in the `src/` directory.
+
+### Entry point
+
+- `src/index.jsx` — application startup
+- `src/App.jsx` — routing and protected routes
+- `src/index.css` — global styles
+
+### Pages
+
+- `src/pages/LoginPage.jsx`
+- `src/pages/DashboardPage.jsx`
+- `src/pages/MyRequestsPage.jsx`
+- `src/pages/NewRequestPage.jsx`
+- `src/pages/CalendarPage.jsx`
+- `src/pages/SchedulePage.jsx`
+- `src/pages/ReplacementsPage.jsx`
+- `src/pages/DepartmentRequestsPage.jsx`
+- `src/pages/AllRequestsPage.jsx`
+- `src/pages/AdminRequestsPage.jsx`
+- `src/pages/UsersPage.jsx`
+- `src/pages/DepartmentsPage.jsx`
+- `src/pages/SettingsPage.jsx`
+
+### Components
+
+- `src/components/layout/*` — layout components
+- `src/components/ui/*` — UI elements
+- `src/components/vacation/*` — vacation request components
+- `src/components/calendar/*` — calendar
+- `src/components/print/*` — printable documents
+- `src/components/icons/*` — logo and icons
+
+### State management
+
+- `src/store/authStore.jsx`
+- `src/store/vacationStore.jsx`
+- `src/store/notificationStore.jsx`
+
+## Backend
+
 A separate backend server is not used.
 
-The backend is implemented through Supabase, which provides:
+The backend is implemented through **Supabase**, which provides:
 
-PostgreSQL database;
-authentication;
-API access to tables;
-SQL functions and database logic.
-Connection layer
-src/lib/supabase.jsx
+- PostgreSQL database
+- authentication
+- API access to tables
+- SQL functions and database logic
+
+### Connection layer
+
+- `src/lib/supabase.jsx`
+
 This file contains:
 
-Supabase client initialization;
-methods for working with database entities;
-access to profiles, departments, requests, schedule, replacements, notifications, and settings.
-Database
-The project uses the following main tables in Supabase / PostgreSQL:
+- Supabase client initialization
+- methods for working with database entities
+- access to profiles, departments, requests, schedule, replacements, notifications, and settings
 
-profiles
-departments
-subjects
-schedule
-weekly_schedule
-vacation_requests
-teacher_replacements
-notifications
-vacation_settings
-overtime_hours (optional / if enabled in DB)
-Roles
-teacher
+## Database
+
+The project uses the following main tables in **Supabase / PostgreSQL**:
+
+- `profiles`
+- `departments`
+- `subjects`
+- `schedule`
+- `weekly_schedule`
+- `vacation_requests`
+- `teacher_replacements`
+- `notifications`
+- `vacation_settings`
+- `overtime_hours` *(optional / if enabled in DB)*
+
+## Roles
+
+### `teacher`
+
 Available sections:
 
-Dashboard
-My Requests
-New Request
-Schedule
-Replacements
-Calendar
-head
+- Dashboard
+- My Requests
+- New Request
+- Schedule
+- Replacements
+- Calendar
+
+### `head`
+
 Available sections:
 
-all teacher sections
-Department Requests
-admin
+- all teacher sections
+- Department Requests
+
+### `admin`
+
 Available sections:
 
-Dashboard
-All Requests
-Users
-Departments
-Schedule
-Calendar
-Settings
-Routing
+- Dashboard
+- All Requests
+- Users
+- Departments
+- Schedule
+- Calendar
+- Settings
+
+## Routing
+
 Routing is configured in:
 
-src/App.jsx
+- `src/App.jsx`
+
 Protected access is implemented through:
 
-ProtectedRoute
-PublicRoute
-Access rules
-unauthenticated users can open only the login page;
-authenticated users are redirected to dashboard;
-restricted pages are доступны only for specific roles.
-UI and Styling
-Styling is implemented using Tailwind CSS.
+- `ProtectedRoute`
+- `PublicRoute`
 
-Global styles and utility classes are located in:
+### Access rules
 
-src/index.css
-Additional configuration:
+- unauthenticated users can open only the login page
+- authenticated users are redirected to dashboard
+- restricted pages are available only for specific roles
 
-tailwind.config.cjs
-Main reusable UI classes:
+## UI and Styling
 
-btn-primary
-btn-secondary
-btn-success
-btn-danger
-card
-input-field
-status-badge
-Notifications
+Styling is implemented using **Tailwind CSS**.
+
+### Main files
+
+- `src/index.css`
+- `tailwind.config.cjs`
+
+### Main reusable UI classes
+
+- `btn-primary`
+- `btn-secondary`
+- `btn-success`
+- `btn-danger`
+- `card`
+- `input-field`
+- `status-badge`
+
+## Notifications
+
 Toast notifications are implemented with:
 
-react-hot-toast
-Main file:
+- `react-hot-toast`
 
-src/components/ui/Toast.jsx
-Application notifications are stored in:
+### Main file
 
-notifications table in Supabase
-State management:
+- `src/components/ui/Toast.jsx`
 
-src/store/notificationStore.jsx
-Printing
+### Application notifications storage
+
+- `notifications` table in Supabase
+
+### State management
+
+- `src/store/notificationStore.jsx`
+
+## Printing
+
 The project supports printing:
 
-vacation application
-vacation order
-Files:
+- vacation application
+- vacation order
 
-src/components/print/PrintableApplication.jsx
-src/components/print/PrintableOrder.jsx
-Printing is triggered from:
+### Files
 
-src/components/vacation/VacationRequestCard.jsx
-Auth
-Authentication is implemented through Supabase Auth.
+- `src/components/print/PrintableApplication.jsx`
+- `src/components/print/PrintableOrder.jsx`
 
-Main file:
+### Printing trigger
 
-src/store/authStore.jsx
-Features:
+- `src/components/vacation/VacationRequestCard.jsx`
 
-session initialization;
-sign in;
-sign out;
-profile loading;
-session persistence;
-auth state subscription.
-Available Scripts
+## Auth
+
+Authentication is implemented through **Supabase Auth**.
+
+### Main file
+
+- `src/store/authStore.jsx`
+
+### Features
+
+- session initialization
+- sign in
+- sign out
+- profile loading
+- session persistence
+- auth state subscription
+
+## Available Scripts
+
 In the project directory, you can run:
 
-npm install
+### `npm install`
+
 Installs all project dependencies.
 
-npm run dev
+### `npm run dev`
+
 Runs the app in development mode.
 
 Open:
 
-Bash
-
+```bash
 http://localhost:3000
-npm run build
-Builds the app for production to the build folder.
+```
 
-npm run preview
+### `npm run build`
+
+Builds the app for production to the `build` folder.
+
+### `npm run preview`
+
 Runs a local preview of the production build.
 
-Environment Variables
-Create a .env file in the project root and add:
+## Environment Variables
 
-env
+Create a `.env` file in the project root and add:
 
+```env
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-Example:
+```
 
-env
+### Example
 
+```env
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your_public_anon_key
-Getting Started
-1. Clone the repository
-Bash
+```
 
+## Getting Started
+
+### 1. Clone the repository
+
+```bash
 git clone <repository_url>
 cd <project_folder>
-2. Install dependencies
-Bash
+```
 
+### 2. Install dependencies
+
+```bash
 npm install
-3. Configure environment variables
-Create a .env file and set:
+```
 
-env
+### 3. Configure environment variables
 
+Create a `.env` file and set:
+
+```env
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-4. Start development server
-Bash
+```
 
+### 4. Start development server
+
+```bash
 npm run dev
-Build
+```
+
+## Build
+
 To build the project for production:
 
-Bash
-
+```bash
 npm run build
+```
+
 Build output directory:
 
-Bash
-
+```bash
 build/
-Deploy
-The project is prepared for deployment on Vercel.
+```
 
-Configuration files:
+## Deploy
 
-vercel.json
-vite.config.js
-Main deployment settings
-framework: Vite
-build command: npm run build
-output directory: build
-Config Files
-vite.config.js
+The project is prepared for deployment on **Vercel**.
+
+### Configuration files
+
+- `vercel.json`
+- `vite.config.js`
+
+### Main deployment settings
+
+- framework: `Vite`
+- build command: `npm run build`
+- output directory: `build`
+
+## Config Files
+
+### `vite.config.js`
+
 Contains:
 
-React plugin;
-dev server settings;
-build output configuration;
-alias configuration.
-tailwind.config.cjs
+- React plugin
+- dev server settings
+- build output configuration
+- alias configuration
+
+### `tailwind.config.cjs`
+
 Contains:
 
-Tailwind content paths;
-custom SGU color palette;
-fonts.
-vercel.json
+- Tailwind content paths
+- custom SGU color palette
+- fonts
+
+### `vercel.json`
+
 Contains:
 
-build settings;
-rewrite rules for SPA;
-response headers.
-Development Notes
+- build settings
+- rewrite rules for SPA
+- response headers
+
+## Development Notes
+
 The project includes a development-only quick login component:
 
-src/components/dev/QuickLogin.jsx
+- `src/components/dev/QuickLogin.jsx`
+
 It is intended for testing and should be removed or disabled before production deployment.
 
-Author
+## Author
+
 Course project for the discipline:
 
-Programming and Web Application Development
+**Programming and Web Application Development**
 
 Project topic:
 
-Development of a web application for automation of vacation accounting and approval for employees of Sochi State University
+**Development of a web application for automation of vacation accounting and approval for employees of Sochi State University**
+
